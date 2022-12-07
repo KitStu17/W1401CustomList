@@ -1,22 +1,28 @@
 package kr.ac.kumoh.s20170479.w1401customlist
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.util.LruCache
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.android.volley.Request
 import com.android.volley.RequestQueue
+import com.android.volley.toolbox.ImageLoader
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONArray
 import org.json.JSONObject
+import java.net.URLEncoder
 
 class PokemonViewModel(application: Application) : AndroidViewModel(application) {
     data class Pokemon (var id: Int, var name: String, var firstdebut: String, var type: String, var image: String)
 
     companion object {
         const val QUEUE_TAG = "PokemonVolleyRequest"
+
+        const val SERVER_URL = "https://pokemon-20170479-jonghyeon.run.goorm.io"
     }
 
     private val pokemons = ArrayList<Pokemon>()
@@ -32,11 +38,9 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun requestPokemon() {
-        val url = "https://pokemon-20170479-jonghyeon.run.goorm.io/pokemon"
-
         val request = JsonArrayRequest(
             Request.Method.GET,
-            url,
+            "${SERVER_URL}/pokemon",
             null,
             {
                 //Toast.makeText(getApplication(), it.toString(), Toast.LENGTH_LONG).show()
@@ -51,6 +55,26 @@ class PokemonViewModel(application: Application) : AndroidViewModel(application)
         request.tag = QUEUE_TAG
         queue.add(request)
     }
+
+    val imageLoader: ImageLoader
+
+    init {
+        _list.value = pokemons
+        queue = Volley.newRequestQueue(application)
+
+        imageLoader = ImageLoader(queue, object : ImageLoader.ImageCache{
+            private val cache = LruCache<String, Bitmap>(100)
+            override fun getBitmap(url: String): Bitmap? {
+                return cache.get(url)
+            }
+
+            override fun putBitmap(url: String, bitmap: Bitmap) {
+                cache.put(url, bitmap)
+            }
+        })
+    }
+
+    fun getImageUrl(i: Int): String = "${SERVER_URL}/image/"+URLEncoder.encode(pokemons[i].image, "utf-8")
 
     private fun parseJson(items: JSONArray){
         for (i in 0 until items.length()){

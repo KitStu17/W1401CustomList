@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.android.volley.toolbox.NetworkImageView
 import kr.ac.kumoh.s20170479.w1401customlist.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -39,10 +40,16 @@ class MainActivity : AppCompatActivity() {
 
     inner class PokomonAdapter : RecyclerView.Adapter<PokomonAdapter.ViewHolder>(){
         inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
-            // val txText = itemView.findViewById<TextView>(android.R.id.text1)
+            // val txText = itemView.findViewById<TextView>(R.id.text1)
             val txName: TextView = itemView.findViewById(R.id.text1)
-            val txFirstdebut: TextView = itemView.findViewById(R.id.text2)
-            // val txType: TextView = itemView.findViewById(android.R.id.text2)
+            // val txFirstdebut: TextView = itemView.findViewById(R.id.text2)
+            val txType: TextView = itemView.findViewById(R.id.text2)
+
+            val niImage: NetworkImageView = itemView.findViewById<NetworkImageView>(R.id.image)
+
+            init {
+                niImage.setErrorImageResId(android.R.drawable.ic_menu_report_image)
+            }
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -53,8 +60,9 @@ class MainActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             // holder.txText.text = model.list.value?.get(position).toString()
             holder.txName.text = model.list.value?.get(position)?.name ?: null
-            holder.txFirstdebut.text = model.list.value?.get(position)?.firstdebut ?: null
-            // holder.txType.text = model.list.value?.get(position)?.type ?: null
+            // holder.txFirstdebut.text = model.list.value?.get(position)?.firstdebut ?: null
+            holder.txType.text = model.list.value?.get(position)?.type ?: null
+            holder.niImage.setImageUrl(model.getImageUrl(position), model.imageLoader)
         }
 
         override fun getItemCount() = model.list.value?.size ?: 0
